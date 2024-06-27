@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Pause, RotateCcw } from 'lucide-react';
+import { Play, Pause, RotateCcw } from 'lucide-react';
 import TimeSelectButton from './TimeSelectButton';
 import StartButton from './StartButton';
 import ControlButton from './ControlButton';
+import TimerDisplay from './TimerDisplay';
 
 const TimekeeperApp: React.FC = () => {
   const [isRunning, setIsRunning] = useState(false);
@@ -33,11 +34,7 @@ const TimekeeperApp: React.FC = () => {
             <StartButton onClick={() => setIsRunning(true)} />
           </>
         ) : (
-          <div className="flex items-center justify-center w-full h-full">
-            <p className="text-[12rem] font-bold text-gray-800 leading-none font-quicksand">
-              {time}
-            </p>
-          </div>
+          <TimerDisplay time={time} />
         )}
       </div>
       {isRunning && (
