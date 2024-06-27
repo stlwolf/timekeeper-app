@@ -6,6 +6,10 @@
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
+  --color-primary: #0081C9;
+  --color-secondary: #5BC0F8;
+  --color-primary-hover: #006ba7;
+  --color-secondary-hover: #3ab0e9;
 }
 
 @media (prefers-color-scheme: dark) {
