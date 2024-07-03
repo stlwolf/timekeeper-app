@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 
 interface TimerDisplayProps {
@@ -16,7 +14,7 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({ time, isOvertime }) => {
   }`;
 
   return (
-    <div className="flex items-center justify-center w-full h-full">
+    <div className="flex items-center justify-center w-full h-full" data-testid="timer-display">
       <div className="flex items-center justify-center">
         <div className={digitClass}>
           <span className={textClass}>{m1}</span>
