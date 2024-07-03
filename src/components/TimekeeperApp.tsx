@@ -6,12 +6,16 @@ import TimeSelectButton from './TimeSelectButton';
 import StartButton from './StartButton';
 import ControlButton from './ControlButton';
 import TimerDisplay from './TimerDisplay';
+import useAudioPlayer from '../hooks/useAudioPlayer';
 
 const TimekeeperApp: React.FC = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [time, setTime] = useState(180); // 3 minutes in seconds
   const [activeTime, setActiveTime] = useState('3分');
   const [isOvertime, setIsOvertime] = useState(false);
+
+  const oneMinuteWarning = useAudioPlayer('/sound/one-minute-warning.wav');
+  const timerEnd = useAudioPlayer('/sound/timer-end.wav');
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -20,7 +24,14 @@ const TimekeeperApp: React.FC = () => {
       interval = setInterval(() => {
         setTime((prevTime) => {
           if (prevTime > -3600) {
-            // Continue counting until -60:00
+            // 1分前の警告
+            if (prevTime === 61) {
+              oneMinuteWarning.play();
+            }
+            // タイマー終了時
+            if (prevTime === 1) {
+              timerEnd.play();
+            }
             return prevTime - 1;
           } else {
             setIsRunning(false);
@@ -33,7 +44,7 @@ const TimekeeperApp: React.FC = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isRunning]);
+  }, [isRunning, oneMinuteWarning, timerEnd]);
 
   useEffect(() => {
     if (time < 0 && !isOvertime) {
@@ -42,6 +53,23 @@ const TimekeeperApp: React.FC = () => {
       setIsOvertime(false);
     }
   }, [time, isOvertime]);
+
+  // 音声ファイルの状態をチェック（オプション）
+  useEffect(() => {
+    const checkAudioStatus = () => {
+      if (!oneMinuteWarning.isReady) {
+        console.warn('1分前警告音の読み込みに失敗しました');
+      }
+      if (!timerEnd.isReady) {
+        console.warn('タイマー終了音の読み込みに失敗しました');
+      }
+    };
+
+    // 音声ファイルの読み込みに十分な時間を与える
+    const timeoutId = setTimeout(checkAudioStatus, 2000);
+
+    return () => clearTimeout(timeoutId);
+  }, [oneMinuteWarning.isReady, timerEnd.isReady]);
 
   const startTimer = () => {
     setIsRunning(true);
