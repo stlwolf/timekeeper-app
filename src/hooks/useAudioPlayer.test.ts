@@ -21,7 +21,7 @@ class AudioMock {
 }
 
 // グローバルなAudioコンストラクタをモック
-global.Audio = AudioMock as any;
+global.Audio = AudioMock as unknown as typeof global.Audio;
 
 describe('useAudioPlayer', () => {
   const audioSrc = 'test-audio.mp3';
