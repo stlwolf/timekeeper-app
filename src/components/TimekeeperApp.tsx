@@ -11,22 +11,37 @@ const TimekeeperApp: React.FC = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [time, setTime] = useState(180); // 3 minutes in seconds
   const [activeTime, setActiveTime] = useState('3分');
+  const [isOvertime, setIsOvertime] = useState(false);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
-    if (isRunning && time > 0) {
+    if (isRunning) {
       interval = setInterval(() => {
-        setTime((prevTime) => prevTime - 1);
+        setTime((prevTime) => {
+          if (prevTime > -3600) {
+            // Continue counting until -60:00
+            return prevTime - 1;
+          } else {
+            setIsRunning(false);
+            return prevTime;
+          }
+        });
       }, 1000);
-    } else if (time === 0) {
-      setIsRunning(false);
     }
 
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isRunning, time]);
+  }, [isRunning]);
+
+  useEffect(() => {
+    if (time < 0 && !isOvertime) {
+      setIsOvertime(true);
+    } else if (time >= 0 && isOvertime) {
+      setIsOvertime(false);
+    }
+  }, [time, isOvertime]);
 
   const startTimer = () => {
     setIsRunning(true);
@@ -39,24 +54,28 @@ const TimekeeperApp: React.FC = () => {
   const resetTimer = () => {
     setIsRunning(false);
     setTime(activeTime === '3分' ? 180 : 360);
+    setIsOvertime(false);
   };
 
   const formatTime = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    const absSeconds = Math.abs(seconds);
+    const minutes = Math.floor(absSeconds / 60);
+    const remainingSeconds = absSeconds % 60;
+    const sign = seconds < 0 ? '-' : '';
+    return `${sign}${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
   const selectTime = (selectedTime: '3分' | '6分') => {
     setActiveTime(selectedTime);
     setTime(selectedTime === '3分' ? 180 : 360);
     setIsRunning(false);
+    setIsOvertime(false);
   };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4 relative">
       <div className="bg-white rounded-lg shadow-xl p-10 w-full max-w-2xl aspect-[4/3] flex flex-col justify-center items-center">
-        {!isRunning && time === (activeTime === '3分' ? 180 : 360) ? (
+        {!isRunning && time > 0 && time === (activeTime === '3分' ? 180 : 360) ? (
           <>
             <div className="flex justify-center mb-12">
               <TimeSelectButton
@@ -75,7 +94,7 @@ const TimekeeperApp: React.FC = () => {
             <StartButton onClick={startTimer} />
           </>
         ) : (
-          <TimerDisplay time={formatTime(time)} />
+          <TimerDisplay time={formatTime(time)} isOvertime={isOvertime} />
         )}
       </div>
       {(isRunning || time !== (activeTime === '3分' ? 180 : 360)) && (
