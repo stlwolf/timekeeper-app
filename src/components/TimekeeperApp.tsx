@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Play, Pause, RotateCcw } from 'lucide-react';
 import TimeSelectButton from './TimeSelectButton';
 import StartButton from './StartButton';
@@ -8,14 +8,45 @@ import ControlButton from './ControlButton';
 import TimerDisplay from './TimerDisplay';
 import useAudioPlayer from '../hooks/useAudioPlayer';
 
+// 音声ファイルのディレクトリを定数化
+const ONE_MINUTE_WARNING_DIR = '/sound/one-minute-warning/';
+const TIMER_END_DIR = '/sound/timer-end/';
+
+// 音声ファイル名のリスト（両方のディレクトリに同じ名前のファイルが存在することを前提とします）
+const audioFileNames = [
+  'zyros.wav',
+  'serin.wav',
+  'molk.wav',
+  'desphara.wav',
+  'arin.wav',
+  'satyrus.wav',
+];
+
+// ランダムな音声ファイル名を選択する関数
+const getRandomAudioFileName = () => {
+  const randomIndex = Math.floor(Math.random() * audioFileNames.length);
+  return audioFileNames[randomIndex];
+};
+
 const TimekeeperApp: React.FC = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [time, setTime] = useState(180); // 3 minutes in seconds
   const [activeTime, setActiveTime] = useState('3分');
   const [isOvertime, setIsOvertime] = useState(false);
+  const [selectedAudioFileName, setSelectedAudioFileName] = useState('');
 
-  const oneMinuteWarning = useAudioPlayer('/sound/one-minute-warning.wav');
-  const timerEnd = useAudioPlayer('/sound/timer-end.wav');
+  const oneMinuteWarning = useAudioPlayer(
+    selectedAudioFileName ? ONE_MINUTE_WARNING_DIR + selectedAudioFileName : ''
+  );
+  const timerEnd = useAudioPlayer(
+    selectedAudioFileName ? TIMER_END_DIR + selectedAudioFileName : ''
+  );
+
+  const selectRandomAudioFile = useCallback(() => {
+    const newFileName = getRandomAudioFileName();
+    console.log(`新しい音声ファイルを選択しました: ${newFileName}`);
+    setSelectedAudioFileName(newFileName);
+  }, []);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -72,6 +103,7 @@ const TimekeeperApp: React.FC = () => {
   }, [oneMinuteWarning.isReady, timerEnd.isReady]);
 
   const startTimer = () => {
+    selectRandomAudioFile(); // タイマー開始時にランダムな音声ファイルを選択
     setIsRunning(true);
   };
 
@@ -83,6 +115,7 @@ const TimekeeperApp: React.FC = () => {
     setIsRunning(false);
     setTime(activeTime === '3分' ? 180 : 360);
     setIsOvertime(false);
+    selectRandomAudioFile(); // タイマーリセット時にも新しい音声ファイルを選択
   };
 
   const formatTime = (seconds: number): string => {
